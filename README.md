@@ -15,7 +15,20 @@ A system tray application that monitors for major market-moving news every 15 mi
 - Deduplicates alerts so you don't see the same headline twice within 2 hours
 - Logs everything to daily log files
 
-## Quick Install (Recommended)
+## One-Click Install (Recommended)
+
+1. **Download the latest release** from the [Releases page](https://github.com/ImagineTheGames/MarketNews/releases/latest)
+2. **Extract the zip** anywhere (e.g. `C:\MarketNews`)
+3. **Double-click `install.bat`** - it will automatically:
+   - Check for Python and install it if missing
+   - Check for Claude Code CLI and install it if missing
+   - Verify Claude Code is authenticated (opens it for you to sign in if not)
+   - Install Python dependencies
+   - Offer to start MarketNews immediately
+
+> **Important:** This app requires [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code/overview) to work. Claude Code is what searches the web and analyzes news using AI. You must have it installed and signed in. The installer will guide you through this.
+
+## Manual Install (From Source)
 
 ### Prerequisites
 
@@ -28,23 +41,13 @@ A system tray application that monitors for major market-moving news every 15 mi
 
 ### Steps
 
-1. **Download this repo**
-
-   Click the green **Code** button above, then **Download ZIP**, and extract it somewhere (e.g. `C:\MarketNews`)
-
-   Or clone it:
+1. **Clone the repo**
    ```
    git clone https://github.com/ImagineTheGames/MarketNews.git
    cd MarketNews
    ```
 
-2. **Run the installer**
-
-   Double-click **`install.bat`** - it will:
-   - Install the Python dependencies for you
-   - Offer to start the app immediately
-
-   Or do it manually:
+2. **Install dependencies**
    ```
    pip install -r requirements.txt
    ```
