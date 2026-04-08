@@ -23,7 +23,7 @@ Respond ONLY with valid JSON in this exact format (no markdown, no code fences, 
       "impact": "HIGH or MEDIUM",
       "direction": "BULLISH or BEARISH or NEUTRAL",
       "summary": "1-2 sentence explanation of why this moves markets",
-      "published": "The time the news was published/reported, e.g. 2:30 PM ET or 14:30 ET. Use the original source's timestamp. If exact time is unknown, give your best estimate with a ~ prefix like ~3:00 PM ET"
+      "published": "The time the news ARTICLE was published by the outlet (not when the event happened). Look at the article's publish date/time. e.g. '2:30 PM ET' or '14:30 ET'. Every news article has a publication timestamp - use that."
     }
   ],
   "checked_at": "ISO timestamp"
