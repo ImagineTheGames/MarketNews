@@ -424,7 +424,7 @@ class NewsHelper:
                     "--output-format", "text",
                 ],
                 capture_output=True,
-                timeout=120,
+                timeout=180,
                 cwd=str(APP_DIR),
                 env={**os.environ, "PYTHONIOENCODING": "utf-8"},
                 startupinfo=startupinfo,
@@ -442,7 +442,7 @@ class NewsHelper:
             self._process_alerts(alerts_data)
 
         except subprocess.TimeoutExpired:
-            self.logger.error("Claude CLI timed out after 120s")
+            self.logger.error("Claude CLI timed out after 180s")
             self.last_status = f"Timeout at {datetime.now().strftime('%H:%M')}"
         except Exception as e:
             self.logger.error(f"News check failed: {e}")

@@ -1,5 +1,5 @@
 {
-  "check_interval_minutes": 15,
+  "check_interval_minutes": 5,
   "alert_threshold": "MEDIUM",
   "claude_path": "claude",
   "auto_start": true,
