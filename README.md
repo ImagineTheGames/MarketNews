@@ -20,8 +20,11 @@ A system tray application that monitors for major market-moving news every 15 mi
 ### Prerequisites
 
 1. **Python 3.10+** - [Download here](https://www.python.org/downloads/) (check "Add Python to PATH" during install)
-2. **Claude Code CLI** - [Install instructions](https://docs.anthropic.com/en/docs/claude-code/overview)
-   - Make sure you can run `claude` from your terminal
+2. **Claude Code CLI (required)** - [Install instructions](https://docs.anthropic.com/en/docs/claude-code/overview)
+   - This app uses Claude Code to search the web and analyze news using AI - it will not work without it
+   - Install Claude Code, then run `claude` in your terminal and sign in to authenticate
+   - You must be signed in and authenticated before running MarketNews
+   - Make sure `claude` works in your terminal by running: `claude -p "hello"`
 
 ### Steps
 
