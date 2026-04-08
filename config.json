@@ -4,5 +4,5 @@
   "claude_path": "claude",
   "auto_start": true,
   "log_retention_days": 7,
-  "dedup_window_hours": 2
+  "dedup_window_hours": 6
 }

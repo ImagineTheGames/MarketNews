@@ -363,6 +363,29 @@ class NewsHelper:
         with open(PROMPT_PATH, "r", encoding="utf-8") as f:
             return f.read().strip()
 
+    def _build_prompt(self):
+        base_prompt = self._read_prompt()
+
+        # Get recent alerts to tell Claude what it already reported
+        recent = self.alert_history.get_today()
+        if not recent:
+            return base_prompt
+
+        # Build a list of already-reported headlines
+        already_reported = []
+        for a in recent[:20]:  # last 20 alerts max
+            already_reported.append(f"- {a.get('headline', '')}")
+
+        dedup_section = (
+            "\n\nIMPORTANT - You have ALREADY reported the following news. "
+            "Do NOT report these again or any news about the same events/topics, "
+            "even if the wording is slightly different. Only report genuinely NEW "
+            "developments that represent a material change from what was already reported:\n"
+            + "\n".join(already_reported)
+        )
+
+        return base_prompt + dedup_section
+
     def check_news(self):
         self.logger.info("Starting news check...")
         self.last_status = "Checking..."
@@ -371,7 +394,7 @@ class NewsHelper:
             self.icon.title = "NewsHelper - Checking..."
 
         try:
-            prompt = self._read_prompt()
+            prompt = self._build_prompt()
             claude_path = self.config.get("claude_path", "claude")
 
             result = subprocess.run(
