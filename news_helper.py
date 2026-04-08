@@ -371,17 +371,32 @@ class NewsHelper:
         if not recent:
             return base_prompt
 
-        # Build a list of already-reported headlines
+        # Build a list of already-reported headlines with summaries
         already_reported = []
-        for a in recent[:20]:  # last 20 alerts max
-            already_reported.append(f"- {a.get('headline', '')}")
+        for a in recent[:20]:
+            line = f"- {a.get('headline', '')}"
+            if a.get("summary"):
+                line += f" ({a.get('summary', '')})"
+            already_reported.append(line)
 
         dedup_section = (
-            "\n\nIMPORTANT - You have ALREADY reported the following news. "
-            "Do NOT report these again or any news about the same events/topics, "
-            "even if the wording is slightly different. Only report genuinely NEW "
-            "developments that represent a material change from what was already reported:\n"
+            "\n\n=== CRITICAL DEDUPLICATION RULES ==="
+            "\nThe following news has ALREADY been reported to the user. "
+            "You MUST treat each item as an entire TOPIC that is now off-limits. "
+            "Do NOT report ANY updates, follow-ups, reactions, confirmations, "
+            "new angles, or developments related to these topics. "
+            "The user considers these the SAME story and does not want to hear about them again.\n"
+            "\nFor example, if 'Trump announces ceasefire with Iran' was already reported, "
+            "then ALL of these are duplicates and must NOT be reported:\n"
+            "- 'Iran accepts ceasefire' (same event)\n"
+            "- 'US halts military operations' (direct consequence of same event)\n"
+            "- 'Markets rally on ceasefire news' (reaction to same event)\n"
+            "- 'Pakistan to host peace talks' (follow-up to same event)\n"
+            "\nAlready reported:\n"
             + "\n".join(already_reported)
+            + "\n\nOnly report something if it is a COMPLETELY DIFFERENT situation "
+            "that has NOTHING to do with the topics above. "
+            "If in doubt, do NOT report it. Return empty alerts array instead."
         )
 
         return base_prompt + dedup_section
