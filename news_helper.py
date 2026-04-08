@@ -380,23 +380,17 @@ class NewsHelper:
             already_reported.append(line)
 
         dedup_section = (
-            "\n\n=== CRITICAL DEDUPLICATION RULES ==="
-            "\nThe following news has ALREADY been reported to the user. "
-            "You MUST treat each item as an entire TOPIC that is now off-limits. "
-            "Do NOT report ANY updates, follow-ups, reactions, confirmations, "
-            "new angles, or developments related to these topics. "
-            "The user considers these the SAME story and does not want to hear about them again.\n"
-            "\nFor example, if 'Trump announces ceasefire with Iran' was already reported, "
-            "then ALL of these are duplicates and must NOT be reported:\n"
-            "- 'Iran accepts ceasefire' (same event)\n"
-            "- 'US halts military operations' (direct consequence of same event)\n"
-            "- 'Markets rally on ceasefire news' (reaction to same event)\n"
-            "- 'Pakistan to host peace talks' (follow-up to same event)\n"
+            "\n\n=== DEDUPLICATION RULES ==="
+            "\nThe following news has ALREADY been reported to the user.\n"
+            "\nDo NOT report:\n"
+            "- The same headline reworded\n"
+            "- Market reactions to already-reported events (e.g. 'stocks rally on ceasefire' if ceasefire was already reported)\n"
+            "- Analyst commentary or opinions about already-reported events\n"
+            "\nDO report (these are allowed):\n"
+            "- Genuinely new developments that change the situation (e.g. 'Iran officially accepts ceasefire' after 'Trump proposes ceasefire' - this is a material update)\n"
+            "- New events on completely different topics\n"
             "\nAlready reported:\n"
             + "\n".join(already_reported)
-            + "\n\nOnly report something if it is a COMPLETELY DIFFERENT situation "
-            "that has NOTHING to do with the topics above. "
-            "If in doubt, do NOT report it. Return empty alerts array instead."
         )
 
         return base_prompt + dedup_section
