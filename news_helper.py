@@ -324,6 +324,7 @@ class NewsHelper:
         self.dedup = DedupCache(self.config.get("dedup_window_hours", 2))
         self.alert_history = AlertHistory()
         self.running = True
+        self.silent_mode = False
         self.last_check = None
         self.last_status = "Starting..."
         self.icon = None
@@ -506,11 +507,13 @@ class NewsHelper:
                 self.icon.icon = self.alert_image
                 self.icon.title = f"NewsHelper - {self.last_status}"
 
-            # Show the popup (blocks in its own thread until dismissed)
-            popup_thread = threading.Thread(
-                target=show_alert_popup, args=(new_alerts,), daemon=True
-            )
-            popup_thread.start()
+            if self.silent_mode:
+                self.logger.info("Silent mode - popup suppressed")
+            else:
+                popup_thread = threading.Thread(
+                    target=show_alert_popup, args=(new_alerts,), daemon=True
+                )
+                popup_thread.start()
 
             # Reset tray icon back to normal after 5 minutes
             threading.Timer(300, self._reset_icon).start()
@@ -576,6 +579,14 @@ class NewsHelper:
 
     def _on_check_now(self, icon, item):
         threading.Thread(target=self.check_news, daemon=True).start()
+
+    def _on_toggle_silent(self, icon, item):
+        self.silent_mode = not self.silent_mode
+        state = "ON" if self.silent_mode else "OFF"
+        self.logger.info(f"Silent mode {state}")
+        if self.icon:
+            suffix = " [SILENT]" if self.silent_mode else ""
+            self.icon.title = f"NewsHelper - {self.last_status}{suffix}"
 
     def _on_view_log(self, icon, item):
         today = datetime.now().strftime("%Y-%m-%d")
@@ -700,6 +711,10 @@ class NewsHelper:
 
         menu = pystray.Menu(
             pystray.MenuItem("Check Now", self._on_check_now, default=True),
+            pystray.MenuItem(
+                lambda item: "Silent Mode  [ON]" if self.silent_mode else "Silent Mode  [OFF]",
+                self._on_toggle_silent,
+            ),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Today's Alerts", self._on_view_history),
             pystray.MenuItem("View Log", self._on_view_log),
