@@ -2,6 +2,7 @@
   "check_interval_minutes": 5,
   "alert_threshold": "MEDIUM",
   "claude_path": "claude",
+  "claude_model": "claude-haiku-4-5-20251001",
   "auto_start": true,
   "log_retention_days": 7,
   "dedup_window_hours": 6,

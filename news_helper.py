@@ -417,10 +417,12 @@ class NewsHelper:
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             startupinfo.wShowWindow = 0  # SW_HIDE
 
+            model = self.config.get("claude_model", "claude-haiku-4-5-20251001")
             result = subprocess.run(
                 [
                     claude_path,
                     "-p", prompt,
+                    "--model", model,
                     "--allowedTools", "WebSearch",
                     "--output-format", "text",
                 ],
