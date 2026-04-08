@@ -522,13 +522,41 @@ class NewsHelper:
             f"{alert.get('headline')} - {alert.get('summary')}"
         )
 
+    def _is_quiet_hours(self):
+        start = self.config.get("quiet_hours_start", "")
+        end = self.config.get("quiet_hours_end", "")
+        if not start or not end:
+            return False
+
+        try:
+            now = datetime.now().time()
+            quiet_start = datetime.strptime(start, "%H:%M").time()
+            quiet_end = datetime.strptime(end, "%H:%M").time()
+
+            if quiet_start <= quiet_end:
+                # Same day range (e.g. 09:00 to 17:00)
+                return quiet_start <= now <= quiet_end
+            else:
+                # Overnight range (e.g. 20:00 to 09:00)
+                return now >= quiet_start or now <= quiet_end
+        except ValueError:
+            self.logger.warning(f"Invalid quiet hours format: {start} - {end}")
+            return False
+
     def _check_loop(self):
         self.check_news()
         interval = self.config.get("check_interval_minutes", 15) * 60
         while self.running:
             time.sleep(interval)
-            if self.running:
-                self.check_news()
+            if not self.running:
+                break
+            if self._is_quiet_hours():
+                now_str = datetime.now().strftime("%H:%M")
+                self.logger.info(f"Quiet hours active, skipping check at {now_str}")
+                if self.icon:
+                    self.icon.title = f"NewsHelper - Quiet hours (until {self.config.get('quiet_hours_end', '')})"
+                continue
+            self.check_news()
 
     def _on_check_now(self, icon, item):
         threading.Thread(target=self.check_news, daemon=True).start()
