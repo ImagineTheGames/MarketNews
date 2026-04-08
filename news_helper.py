@@ -544,7 +544,12 @@ class NewsHelper:
             return False
 
     def _check_loop(self):
-        self.check_news()
+        if not self._is_quiet_hours():
+            self.check_news()
+        else:
+            self.logger.info("Quiet hours active on startup, skipping initial check")
+            if self.icon:
+                self.icon.title = f"NewsHelper - Quiet hours (until {self.config.get('quiet_hours_end', '')})"
         interval = self.config.get("check_interval_minutes", 15) * 60
         while self.running:
             time.sleep(interval)
@@ -577,6 +582,100 @@ class NewsHelper:
     def _on_open_folder(self, icon, item):
         os.startfile(str(APP_DIR))
 
+    def _on_settings(self, icon, item):
+        threading.Thread(target=self._show_settings, daemon=True).start()
+
+    def _show_settings(self):
+        win = tk.Tk()
+        win.title("NewsHelper - Settings")
+        win.attributes("-topmost", True)
+        win.configure(bg="#1a1a2e")
+        win.resizable(False, False)
+        win.geometry("380x280")
+
+        # Center on screen
+        win.update_idletasks()
+        x = (win.winfo_screenwidth() - 380) // 2
+        y = (win.winfo_screenheight() - 280) // 2
+        win.geometry(f"+{x}+{y}")
+
+        tk.Label(
+            win, text="Settings", font=("Segoe UI", 14, "bold"),
+            fg="white", bg="#1a1a2e",
+        ).pack(pady=(12, 8))
+
+        frame = tk.Frame(win, bg="#1a1a2e")
+        frame.pack(padx=20, fill="x")
+
+        # Quiet hours start
+        tk.Label(
+            frame, text="Quiet hours start:", font=("Segoe UI", 11),
+            fg="white", bg="#1a1a2e",
+        ).grid(row=0, column=0, sticky="w", pady=6)
+
+        start_var = tk.StringVar(value=self.config.get("quiet_hours_start", "20:00"))
+        start_entry = tk.Entry(
+            frame, textvariable=start_var, font=("Segoe UI", 11),
+            width=8, bg="#16213e", fg="white", insertbackground="white",
+        )
+        start_entry.grid(row=0, column=1, padx=(10, 0), pady=6)
+
+        # Quiet hours end
+        tk.Label(
+            frame, text="Quiet hours end:", font=("Segoe UI", 11),
+            fg="white", bg="#1a1a2e",
+        ).grid(row=1, column=0, sticky="w", pady=6)
+
+        end_var = tk.StringVar(value=self.config.get("quiet_hours_end", "09:00"))
+        end_entry = tk.Entry(
+            frame, textvariable=end_var, font=("Segoe UI", 11),
+            width=8, bg="#16213e", fg="white", insertbackground="white",
+        )
+        end_entry.grid(row=1, column=1, padx=(10, 0), pady=6)
+
+        # Check interval
+        tk.Label(
+            frame, text="Check interval (min):", font=("Segoe UI", 11),
+            fg="white", bg="#1a1a2e",
+        ).grid(row=2, column=0, sticky="w", pady=6)
+
+        interval_var = tk.StringVar(value=str(self.config.get("check_interval_minutes", 15)))
+        interval_entry = tk.Entry(
+            frame, textvariable=interval_var, font=("Segoe UI", 11),
+            width=8, bg="#16213e", fg="white", insertbackground="white",
+        )
+        interval_entry.grid(row=2, column=1, padx=(10, 0), pady=6)
+
+        # Status label
+        status_label = tk.Label(
+            win, text="", font=("Segoe UI", 10), fg="#00c853", bg="#1a1a2e",
+        )
+        status_label.pack(pady=(4, 0))
+
+        def save():
+            self.config["quiet_hours_start"] = start_var.get().strip()
+            self.config["quiet_hours_end"] = end_var.get().strip()
+            try:
+                self.config["check_interval_minutes"] = int(interval_var.get().strip())
+            except ValueError:
+                pass
+            with open(CONFIG_PATH, "w") as f:
+                json.dump(self.config, f, indent=2)
+            status_label.config(text="Saved! Changes take effect next check cycle.")
+            self.logger.info(
+                f"Settings updated: quiet {self.config['quiet_hours_start']}-"
+                f"{self.config['quiet_hours_end']}, interval {self.config['check_interval_minutes']}m"
+            )
+
+        tk.Button(
+            win, text="Save", font=("Segoe UI", 11, "bold"),
+            fg="white", bg="#0f3460", activebackground="#e94560",
+            activeforeground="white", relief="flat", padx=30, pady=5,
+            command=save,
+        ).pack(pady=10)
+
+        win.mainloop()
+
     def _on_quit(self, icon, item):
         self.running = False
         icon.stop()
@@ -584,11 +683,16 @@ class NewsHelper:
     def run(self):
         self.logger.info("NewsHelper starting...")
 
+        quiet_status = ""
+        if self._is_quiet_hours():
+            quiet_status = f" (quiet until {self.config.get('quiet_hours_end', '')})"
+
         menu = pystray.Menu(
             pystray.MenuItem("Check Now", self._on_check_now, default=True),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Today's Alerts", self._on_view_history),
             pystray.MenuItem("View Log", self._on_view_log),
+            pystray.MenuItem("Settings", self._on_settings),
             pystray.MenuItem("Open Folder", self._on_open_folder),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Quit", self._on_quit),

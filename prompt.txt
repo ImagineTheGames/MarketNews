@@ -1,4 +1,4 @@
-Search the web for breaking financial and geopolitical news from the last 30 minutes that could significantly move the US stock market. Focus ONLY on major market-moving events such as:
+Search the web for BREAKING financial and geopolitical news from the last 30 minutes ONLY that could significantly move the US stock market. The news must have been published or broken within the last 30 minutes - not hours ago, not this morning, not yesterday. If a story was published at 6:00 AM and it is now 11:00 PM, that is NOT recent. Focus ONLY on major market-moving events such as:
 
 - War, military action, ceasefire agreements, or major geopolitical escalation/de-escalation
 - Tariff announcements, trade war developments, or sanctions
@@ -13,7 +13,7 @@ Do NOT report:
 - Routine daily market movements or analyst opinions
 - Earnings reports unless they are catastrophically bad or surprisingly good for mega-cap companies
 - General market commentary or predictions
-- News older than 2 hours
+- News older than 30 minutes - this is critical, do NOT include old news no matter how significant it was
 
 Respond ONLY with valid JSON in this exact format (no markdown, no code fences, just raw JSON):
 {
