@@ -99,19 +99,19 @@ def create_alert_icon():
     return img
 
 
-def show_alert_popup(alerts):
+def show_alert_popup(alerts, review_mode=False):
     """Show a persistent always-on-top popup window with alert details.
-    Stays on screen until the user clicks Dismiss. Plays a sound."""
+    review_mode=True when opened manually (Today's Alerts), skips sound."""
 
-    def _play_sound():
-        try:
-            winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)
-            time.sleep(0.3)
-            winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)
-        except Exception:
-            pass
-
-    threading.Thread(target=_play_sound, daemon=True).start()
+    if not review_mode:
+        def _play_sound():
+            try:
+                winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)
+                time.sleep(0.3)
+                winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)
+            except Exception:
+                pass
+        threading.Thread(target=_play_sound, daemon=True).start()
 
     root = tk.Tk()
     root.title("NewsHelper - MARKET ALERT")
@@ -134,7 +134,10 @@ def show_alert_popup(alerts):
     header_frame = tk.Frame(root, bg="#e94560", padx=12, pady=8)
     header_frame.pack(fill="x")
 
-    header_text = f"MARKET ALERT  -  {len(alerts)} new event{'s' if len(alerts) != 1 else ''}"
+    if review_mode:
+        header_text = f"TODAY'S ALERTS  -  {len(alerts)} event{'s' if len(alerts) != 1 else ''}"
+    else:
+        header_text = f"MARKET ALERT  -  {len(alerts)} new event{'s' if len(alerts) != 1 else ''}"
     tk.Label(
         header_frame, text=header_text,
         font=("Segoe UI", 14, "bold"), fg="white", bg="#e94560",
@@ -194,6 +197,16 @@ def show_alert_popup(alerts):
         headline = alert.get("headline", "Unknown Event")
         summary = alert.get("summary", "")
         published = alert.get("published", "")
+
+        # In review mode, fall back to stored timestamp if no published time
+        if not published and review_mode:
+            ts = alert.get("timestamp", "")
+            if ts:
+                try:
+                    dt = datetime.fromisoformat(ts)
+                    published = dt.strftime("%I:%M %p")
+                except (ValueError, TypeError):
+                    pass
 
         card = tk.Frame(alert_frame, bg="#16213e", padx=14, pady=10)
         card.pack(fill="x", pady=5, padx=4)
@@ -600,7 +613,7 @@ class NewsHelper:
         today_alerts = self.alert_history.get_today()
         if today_alerts:
             threading.Thread(
-                target=show_alert_popup, args=(today_alerts,), daemon=True
+                target=show_alert_popup, args=(today_alerts, True), daemon=True
             ).start()
 
     def _on_open_folder(self, icon, item):
