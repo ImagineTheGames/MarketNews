@@ -1,0 +1,33 @@
+Search the web for breaking financial and geopolitical news from the last 30 minutes that could significantly move the US stock market. Focus ONLY on major market-moving events such as:
+
+- War, military action, ceasefire agreements, or major geopolitical escalation/de-escalation
+- Tariff announcements, trade war developments, or sanctions
+- Federal Reserve rate decisions, emergency statements, or unexpected policy shifts
+- Major company bankruptcy, fraud, or collapse (e.g. a Fortune 500 company)
+- Unexpected economic data releases (jobs, inflation, GDP) that significantly beat or miss expectations
+- Presidential executive orders or speeches with direct market impact
+- Major terrorist attacks or natural disasters affecting markets
+- OPEC decisions or major oil supply disruptions
+
+Do NOT report:
+- Routine daily market movements or analyst opinions
+- Earnings reports unless they are catastrophically bad or surprisingly good for mega-cap companies
+- General market commentary or predictions
+- News older than 2 hours
+
+Respond ONLY with valid JSON in this exact format (no markdown, no code fences, just raw JSON):
+{
+  "alerts": [
+    {
+      "headline": "Brief headline",
+      "impact": "HIGH or MEDIUM",
+      "direction": "BULLISH or BEARISH or NEUTRAL",
+      "summary": "1-2 sentence explanation of why this moves markets",
+      "published": "The time the news was published/reported, e.g. 2:30 PM ET or 14:30 ET. Use the original source's timestamp. If exact time is unknown, give your best estimate with a ~ prefix like ~3:00 PM ET"
+    }
+  ],
+  "checked_at": "ISO timestamp"
+}
+
+If there is no significant market-moving news right now, respond with:
+{"alerts": [], "checked_at": "ISO timestamp"}
