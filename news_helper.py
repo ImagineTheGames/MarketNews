@@ -405,17 +405,17 @@ class NewsHelper:
                     "--output-format", "text",
                 ],
                 capture_output=True,
-                text=True,
                 timeout=120,
                 cwd=str(APP_DIR),
+                env={**os.environ, "PYTHONIOENCODING": "utf-8"},
             )
 
             if result.returncode != 0:
-                self.logger.error(f"Claude CLI error: {result.stderr}")
+                self.logger.error(f"Claude CLI error: {result.stderr.decode('utf-8', errors='replace')}")
                 self.last_status = f"Error at {datetime.now().strftime('%H:%M')}"
                 return
 
-            response = result.stdout.strip()
+            response = result.stdout.decode("utf-8", errors="replace").strip()
             self.logger.info(f"Raw response length: {len(response)} chars")
 
             alerts_data = self._parse_response(response)
