@@ -30,8 +30,13 @@ def load_config():
 
 def get_exe_path():
     if getattr(sys, "frozen", False):
-        return sys.executable
-    return f'"{sys.executable}" "{__file__}"'
+        return f'"{sys.executable}"'
+    # Use pythonw.exe to avoid a console window on startup
+    python_dir = Path(sys.executable).parent
+    pythonw = python_dir / "pythonw.exe"
+    if not pythonw.exists():
+        pythonw = Path(sys.executable)
+    return f'"{pythonw}" "{Path(__file__).resolve()}"'
 
 
 def setup_logging():
