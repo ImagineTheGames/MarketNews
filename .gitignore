@@ -8,3 +8,5 @@ build/
 logs/
 dedup_cache.json
 alerts_history.json
+release/
+MarketNews-*.zip

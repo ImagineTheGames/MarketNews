@@ -11,8 +11,10 @@ A system tray application that monitors for major market-moving news every 15 mi
 - Each alert shows: impact level (HIGH/MEDIUM), market direction (BULLISH/BEARISH/NEUTRAL), headline, summary, and the time the news was published
 - Plays a sound when alerts appear
 - Lives in your **system tray** with right-click menu
+- **Quiet hours** - no alerts during nights/weekends (configurable)
+- **Settings UI** - right-click tray icon to configure without editing files
+- **Smart deduplication** - won't spam you with the same story reworded, but will alert on genuinely new developments
 - **Auto-starts with Windows** so you never miss a market event
-- Deduplicates alerts so you don't see the same headline twice within 2 hours
 - Logs everything to daily log files
 
 ## One-Click Install (Recommended)
@@ -74,6 +76,7 @@ A system tray application that monitors for major market-moving news every 15 mi
 | **Check Now** | Run a news check immediately (also triggered by double-click) |
 | **Today's Alerts** | Re-open the popup with all alerts from today |
 | **View Log** | Open today's log file |
+| **Settings** | Open settings window (quiet hours, check interval) |
 | **Open Folder** | Open the app's folder in Explorer |
 | **Quit** | Exit the app |
 
@@ -83,12 +86,20 @@ When market-moving news is found, a popup appears center-screen and **stays unti
 
 - **Impact badge** - RED for HIGH, YELLOW for MEDIUM
 - **Direction arrow** - Green BULLISH, Red BEARISH, Yellow NEUTRAL
-- **Published time** - When the news was actually reported
+- **Published time** - When the news was actually reported by the source
 - **Headline + Summary** - What happened and why it matters
+
+### Quiet Hours
+
+By default, alerts are paused between **8:00 PM and 9:00 AM**. During quiet hours:
+- No news checks are run (saves API usage)
+- Tray icon shows "Quiet hours" in the tooltip
+- Change the times via right-click > **Settings**, or edit `config.json`
+- Set both to `""` to disable quiet hours entirely
 
 ### Configuration
 
-Edit `config.json` to customize:
+Edit `config.json` or use right-click > **Settings**:
 
 ```json
 {
@@ -97,7 +108,9 @@ Edit `config.json` to customize:
   "claude_path": "claude",
   "auto_start": true,
   "log_retention_days": 7,
-  "dedup_window_hours": 2
+  "dedup_window_hours": 6,
+  "quiet_hours_start": "20:00",
+  "quiet_hours_end": "09:00"
 }
 ```
 
@@ -108,7 +121,16 @@ Edit `config.json` to customize:
 | `claude_path` | Path to Claude Code CLI (usually just `"claude"`) | `"claude"` |
 | `auto_start` | Register to start with Windows | `true` |
 | `log_retention_days` | How many days of logs to keep | `7` |
-| `dedup_window_hours` | Hours before a similar headline can alert again | `2` |
+| `dedup_window_hours` | Hours before a similar headline can alert again | `6` |
+| `quiet_hours_start` | When to stop checking (24h format, e.g. `"20:00"`) | `"20:00"` |
+| `quiet_hours_end` | When to resume checking (24h format, e.g. `"09:00"`) | `"09:00"` |
+
+### Smart Deduplication
+
+The app prevents alert spam in two ways:
+
+1. **Hash-based dedup** - identical or near-identical headlines are blocked for 6 hours
+2. **AI-aware dedup** - Claude receives a list of all previously reported headlines so it skips reworded versions of the same story, market reactions to old news, and analyst commentary on already-reported events. Genuinely new developments on the same topic (e.g. "Iran accepts ceasefire" after "Trump proposes ceasefire") are still allowed through.
 
 ### Customizing What News to Track
 
@@ -121,7 +143,7 @@ If you want a single executable you can share or run without Python installed:
 ```
 # Double-click build.bat, or run:
 pip install pyinstaller
-pyinstaller --onefile --noconsole --name NewsHelper news_helper.py
+pyinstaller --onefile --noconsole --name MarketNews news_helper.py
 ```
 
 The `.exe` will be in the `dist/` folder. Copy `prompt.txt` and `config.json` next to it.
@@ -141,6 +163,14 @@ The `.exe` will be in the `dist/` folder. Copy `prompt.txt` and `config.json` ne
 - Try right-click > Check Now to trigger a manual check
 - Make sure your internet connection is working
 
+**Getting too many alerts**
+- Set `alert_threshold` to `"HIGH"` in config.json to only see high-impact events
+- Adjust quiet hours to limit when alerts can appear
+
+**Getting old/stale news**
+- The prompt is configured to only return news from the last 30 minutes
+- If you still see old news, check that your system clock is correct
+
 **"Python not found"**
 - Reinstall Python and make sure to check **"Add Python to PATH"**
 - Or use the full path: `C:\Users\YourName\AppData\Local\Programs\Python\Python310\python.exe news_helper.py`
@@ -148,13 +178,16 @@ The `.exe` will be in the `dist/` folder. Copy `prompt.txt` and `config.json` ne
 ## How It Works
 
 ```
-Every 15 minutes:
-  1. Calls Claude Code CLI with a web search prompt
-  2. Claude searches multiple news sources for breaking events
-  3. Returns structured JSON with headlines, impact, and direction
-  4. App checks for duplicates (skips if already alerted)
-  5. Shows persistent popup window + plays alert sound
-  6. Logs everything to daily log file
+Every 15 minutes (during active hours):
+  1. Checks if quiet hours are active - skips if so
+  2. Builds prompt with list of already-reported headlines
+  3. Calls Claude Code CLI with web search enabled
+  4. Claude searches multiple news sources for breaking events
+  5. Returns structured JSON with headlines, impact, direction, and publish time
+  6. App checks for duplicates (hash-based + AI-aware)
+  7. Shows persistent popup window + plays alert sound
+  8. Saves alerts to history for dedup and "Today's Alerts" view
+  9. Logs everything to daily log file
 ```
 
 ## License
