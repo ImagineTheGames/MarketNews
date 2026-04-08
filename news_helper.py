@@ -411,6 +411,11 @@ class NewsHelper:
             prompt = self._build_prompt()
             claude_path = self.config.get("claude_path", "claude")
 
+            # Hide console window on Windows
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = 0  # SW_HIDE
+
             result = subprocess.run(
                 [
                     claude_path,
@@ -422,6 +427,7 @@ class NewsHelper:
                 timeout=120,
                 cwd=str(APP_DIR),
                 env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+                startupinfo=startupinfo,
             )
 
             if result.returncode != 0:
